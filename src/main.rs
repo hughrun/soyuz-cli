@@ -59,31 +59,32 @@ fn create_or_update_homepage(string: String) -> Result<(), std::io::Error> {
 }
 
 fn help() {
-    println!("Союз (Soyuz) - v{}", option_env!("CARGO_PKG_VERSION").unwrap());
-    println!("A command line program for publishing Gemini posts.\n");
-    println!("    soyuz ( help | settings | write | publish | sync [ --overwrite | --delete ] )\n");
-    println!("    help");
+    println!("\x1B[1;37;41mСоюз (Soyuz) - v{}\x1B[0m", option_env!("CARGO_PKG_VERSION").unwrap());
+    println!("A command line program for publishing Gemini posts\n\x1B[0m");
+    println!("    \x1B[1;31mhelp | settings | write | publish | sync [ up | down [ --overwrite | --delete ]]\n\x1B[0m");
+    println!("    \x1B[1;31mhelp\x1B[0m");
     println!("    - shows this help screen\n");
-    println!("    settings");
+    println!("    \x1B[1;31msettings\x1B[0m");
     println!("    - create or edit the settings file\n");
-    println!("    write");
+    println!("    \x1B[1;31mwrite\x1B[0m");
     println!("    - create or edit today's gempost using the editor specified in the settings file\n");
-    println!("    publish");
-    println!("    - update the homepage and year archive lists of posts, and publish to server.");
-    println!("      Syncs new or changed files from the server before updating indexes and syncing up.\n");
-    println!("    sync");
-    println!("    - synchronise files between local machine and server.");
+    println!("    \x1B[1;31mpublish\x1B[0m");
+    println!("    - update the homepage and year archive lists of posts, and publish to server");
+    println!("      Syncs new or changed files from the server before updating indexes and syncing up\n");
+    println!("      If you wish to make manual homepage changes you should use 'sync down' first\n");
+    println!("    \x1B[1;31msync\x1B[0m");
+    println!("    - synchronise files between local machine and server");
     println!("      This is a wrapper around rsync, the default being 'rsync -rtOq'");
     println!("      Without arguments sync defaults to 'sync up' which is the equivalent of 'publish'\n");
-    println!("    sync up");
-    println!("    - syncronise new or changed files from local machine to server.\n");
-    println!("    sync down");
-    println!("    - syncronise new or changed files from server to local machine.\n");
-    println!("    sync (down | up) --overwrite");
-    println!("    - sync, and overwrite all files at the destination regardless of last edit date.");
-    println!("      Without this flag, sync will ignore files at the destination edited more recently than the source.\n");
-    println!("    sync (down | up) --delete");
-    println!("    - sync, and delete any files at the destination that do not exist at the source.\n");
+    println!("    \x1B[1;31msync up\x1B[0m");
+    println!("    - synchronise new or changed files from local machine to server\n");
+    println!("    \x1B[1;31msync down\x1B[0m");
+    println!("    - synchronise new or changed files from server to local machine\n");
+    println!("    \x1B[1;31msync (down | up) --overwrite\x1B[0m");
+    println!("    - sync, and overwrite all files at the destination regardless of last edit date");
+    println!("      Without this flag, sync will ignore files at the destination edited more recently than the source\n");
+    println!("    \x1B[1;31msync (down | up) --delete\x1B[0m");
+    println!("    - sync, and delete any files at the destination that do not exist at the source\n");
 }
 
 fn open_file(filepath: std::path::PathBuf) {
@@ -100,6 +101,7 @@ fn open_file(filepath: std::path::PathBuf) {
 }
 
 fn publish() -> Result<(), Box<dyn std::error::Error>> {
+    println!("Publishing, please wait...");
     let config = read_config()?;
     // sync down from server (only files that are newer on the server than local)
     let mut sync = Command::new("rsync")
@@ -227,7 +229,7 @@ fn settings() -> Result<(), Box<dyn std::error::Error>> {
 fn sync(args: &Vec<String>) -> Result<(), Box<dyn std::error::Error>> {
     let config = read_config()?;
     let rsync_args = match args.len() {
-        2 => ["-rtOq", "--update", &config.remote_dir, &config.local_dir],
+        2 => ["-rtOq", "--update", &config.local_dir, &config.remote_dir],
         3 | 4 => {
             match args[2].as_str() {
                 "down" => {
