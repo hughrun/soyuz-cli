@@ -9,7 +9,7 @@ use std::path::PathBuf;
 use regex::Regex;
 use serde::Deserialize;
 use std::fs;
-use std::process::Command;
+use std::process::{Command, Stdio};
 use toml;
 
 #[derive(Debug, Deserialize)]
@@ -280,13 +280,47 @@ fn sync(args: &Vec<String>) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn write() -> Result<(), Box<dyn std::error::Error>> {
+    println!("Checking server for latest post...");
     let config = read_config()?;
     let dt = Local::now();
     let year = &dt.format("%Y").to_string();
-    let local_dir: std::path::PathBuf = expanduser(config.local_dir)?;
+    let local_dir: std::path::PathBuf = expanduser(&config.local_dir)?;
+    let remote_dir: std::path::PathBuf = expanduser(&config.remote_dir)?;
     fs::create_dir_all(format!("{}{}", &local_dir.display(), &year))?;
     let filepath = format!("{}{}/{}.gmi", local_dir.display(), year, dt.format("%Y-%m-%d"));
-    Ok(open_file(filepath.into()))
+    let spath = format!("{}", remote_dir.display());
+    let remote_vec = spath.split(':').collect::<Vec<_>>();
+    let server_name = remote_vec[0];
+    let server_path = remote_vec[1];
+    let remote_filepath = format!("{}{}/{}.gmi", server_path, year, dt.format("%Y-%m-%d"));
+    let cmd = format!("[[ -f {} ]] && echo 'true' || echo 'false';", &remote_filepath);
+    let check = Command::new("ssh")
+            .args(["-q", &server_name, &cmd])
+            .stdout(Stdio::piped())
+            .spawn()
+            .expect("reading from server failed");
+    let output = check
+              .wait_with_output()
+              .expect("something fucked up");
+    let out = std::str::from_utf8(&output.stdout);
+    let out2 = out.clone()?.trim();
+    match out?.trim() {
+          "true" => {
+            // user has already published today
+            println!("\x1B[1;31mYou have already published today!\x1B[0m");
+            println!("To edit your post, run 'sync down' first.");
+            Ok(())
+          },
+          "false" => {
+            // open a new file
+            Ok(open_file(filepath.into()))
+          },
+          _ => {
+            println!("Something went wrong checking your gemini server");
+            println!("Error: {:?}", out2);
+            Ok(())
+          }
+        }
 }
 
 fn match_single_arg(args: &Vec<String>) -> Result<(), Box<dyn std::error::Error>> {
