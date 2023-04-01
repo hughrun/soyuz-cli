@@ -33,3 +33,7 @@ Once installed, run `soyuz settings` to create a new settings file. The settings
 * `remote_dir` - the SSH remote directory path to your files on the server. This includes the server name or ip address, so should look something like `gemini-server:/srv/gemini/example.com` or `username@123.456.789:/srv/gemini/example.com`.
 * `editor` - the command to open the text editor you want to use. Defaults to `nano`.
 * `index_heading` - the heading text above the latest posts listing on your homepage. If unsure, leave this on the default.
+
+## Commands
+
+Run `soyuz help` for a list of commands and what they do.
