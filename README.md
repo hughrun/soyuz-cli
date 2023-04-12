@@ -17,10 +17,18 @@ It is mostly a wrapper around `rsync`. Additionally it will maintain an archive 
 
 ## Installation
 
-The easiest way to install `soyuz-cli` is using the install script. If you are using MacOS, run this command in `Terminal`:
+The easiest way to install `soyuz-cli` is using the install script. Note that these scripts **will overwrite any previously installed version**.
+
+If you are using a recent version of MacOS, run this command in `Terminal`:
 
 ```sh
-curl -L https://hugh.run/install-soyuz | bash
+curl -kL https://hugh.run/install-soyuz | bash
+```
+
+To install for MacOS Mojave, run this command instead:
+
+```sh
+curl -kL https://hugh.run/install-soyuz-mojave | bash
 ```
 
 Alternatively, you can build from source if you have rust and cargo installed.
